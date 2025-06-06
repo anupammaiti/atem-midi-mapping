@@ -27,10 +27,13 @@
     "82": { "action": "macro", "macroIndex": 2 },
 
     "0": { "action": "cut"},
-    "1": { "action": "auto"}
+    "1": { "action": "auto"},
+    "2": { "action": "mp1"},
+    "3": { "action": "mp2"}
   },
  "controlChangeMappings": {
-    "10": { "action": "audioGain", "channel": 1 },
+    "55": { "action": "audioGain", "channel": 1 },
+    "56": { "action": "audioGain", "channel": 2 },
     "20": { "action": "transitionRate" },
     "21": { "action": "dveX" },
     "22": { "action": "dveY" },

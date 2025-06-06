@@ -1,117 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>AKAI APC Mini + ATEM Mapping</title>
-<style>
-  body { background: #111; color: #eee; font-family: Arial, sans-serif; text-align: center; }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(10, 80px);
-    gap: 8px;
-    justify-content: center;
-    margin: 20px auto;
-  }
-  button {
-    font-size: 14px;
-    padding: 18px 4px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    color: white;
-    user-select: none;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  button.program { background-color: #d33; }
-  button.preview { background-color: #3a3; }
-  button.macro { background-color: #e68a00; }
-  button.cutauto { background-color: #0066cc; }
-  button.unmapped { background-color: #444; }
-  button.active { box-shadow: 0 0 12px 3px #fff inset; }
-</style>
+  <meta charset="UTF-8">
+  <title>APC Mini Visual Mapper</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 { margin-bottom: 10px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(8, 60px);
+      grid-template-rows: repeat(8, 60px);
+      gap: 6px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+
+    .cc-controls {
+      margin-top: 40px;
+    }
+
+    .cc-slider {
+      margin: 10px auto;
+      width: 300px;
+    }
+
+    .button {
+      width: 60px;
+      height: 60px;
+      background: #444;
+      border: 1px solid #666;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: white;
+    }
+
+    .program { background-color: red !important; }
+    .preview { background-color: green !important; }
+    .macro { background-color: orange; }
+    .cut { background-color: #0ff; }
+    .auto { background-color: #f0f; }
+    input.audio::-webkit-slider-thumb {
+  background-color: #4caf50;
+}
+input.transition::-webkit-slider-thumb {
+  background-color: #2196f3;
+}
+input.dve::-webkit-slider-thumb {
+  background-color: #ff9800;
+}
+input.position::-webkit-slider-thumb {
+  background-color: #9c27b0;
+}
+input.swap::-webkit-slider-thumb {
+  background-color: #f44336;
+}
+
+/* For Firefox */
+input.audio::-moz-range-thumb {
+  background-color: #4caf50;
+}
+input.transition::-moz-range-thumb {
+  background-color: #2196f3;
+}
+input.dve::-moz-range-thumb {
+  background-color: #ff9800;
+}
+input.position::-moz-range-thumb {
+  background-color: #9c27b0;
+}
+input.swap::-moz-range-thumb {
+  background-color: #f44336;
+}
+
+  </style>
 </head>
 <body>
 
-<h1>AKAI APC Mini Layout with ATEM Live Status</h1>
-<div class="grid" id="grid"></div>
+  <h1>🎛️ APC Mini Layout</h1>
+  <div class="grid" id="grid"></div>
 
-<script>
-  // Example: Your noteMappings keys (notes) from 0 to 82
-  // We'll build a grid showing notes 0-83 for simplicity
+  <div class="cc-controls" id="cc-controls">
+    <h2>🎚️ CC Mappings</h2>
+    <!-- Sliders will be added here dynamically -->
+  </div>
 
-  const NOTE_START = 0;
-  const NOTE_END = 83; // max note from your mapping
-  const NOTES_PER_ROW = 10;
-
-  let mappings = {};
-  let atemStatus = { program: null, preview: null };
-
-  // Fetch mappings from server (adjust URL if needed)
-  async function loadMappings() {
-    const res = await fetch('/mappings');
-    mappings = await res.json();
-    renderGrid();
-  }
-
-  function renderGrid() {
+  <script>
     const grid = document.getElementById('grid');
-    grid.innerHTML = '';
-    for(let note = NOTE_START; note <= NOTE_END; note++) {
-      const map = mappings.noteMappings?.[note];
-      const btn = document.createElement('button');
-      btn.dataset.note = note;
-      btn.classList.add('unmapped');
+    const ccControls = document.getElementById('cc-controls');
+    let noteMappings = {};
+    let ccMappings = {};
 
-      if (map) {
-        switch(map.action) {
-          case 'program':
-            btn.textContent = `P${map.input}`;
-            btn.className = 'program';
-            if (atemStatus.program === map.input) btn.classList.add('active');
-            break;
-          case 'preview':
-            btn.textContent = `Pr${map.input}`;
-            btn.className = 'preview';
-            if (atemStatus.preview === map.input) btn.classList.add('active');
-            break;
-          case 'macro':
-            btn.textContent = `M${map.macroIndex}`;
-            btn.className = 'macro';
-            break;
-          case 'cut':
-            btn.textContent = 'Cut';
-            btn.className = 'cutauto';
-            break;
-          case 'auto':
-            btn.textContent = 'Auto';
-            btn.className = 'cutauto';
-            break;
-          default:
-            btn.textContent = note;
-            btn.className = 'unmapped';
+    function renderGrid() {
+      grid.innerHTML = '';
+      // Bottom row is note 0, top row is note 56–63
+      for (let row = 7; row >= 0; row--) {
+        for (let col = 0; col < 8; col++) {
+          const note = row * 8 + col;
+          const btn = document.createElement('div');
+          btn.classList.add('button');
+          btn.dataset.note = note;
+
+          const mapping = noteMappings[note];
+          btn.textContent = mapping ? mapping.action : note;
+
+          if (mapping) {
+            if (mapping.action === 'macro') btn.classList.add('macro');
+            if (mapping.action === 'cut') btn.classList.add('cut');
+            if (mapping.action === 'auto') btn.classList.add('auto');
+          } else {
+            btn.style.opacity = 0.3;
+          }
+
+          grid.appendChild(btn);
         }
-      } else {
-        btn.textContent = note;
       }
-
-      grid.appendChild(btn);
     }
+
+function renderCCSliders() {
+  ccControls.innerHTML = '<h2>🎚️ CC Mappings</h2>';
+  for (const controller in ccMappings) {
+    const mapping = ccMappings[controller];
+    const wrapper = document.createElement('div');
+    wrapper.className = 'cc-slider';
+
+    // Assign class based on action type
+    let colorClass = '';
+    switch (mapping.action) {
+      case 'audioGain':
+        colorClass = 'audio';
+        break;
+      case 'transitionRate':
+        colorClass = 'transition';
+        break;
+      case 'dveX':
+      case 'dveY':
+        colorClass = 'dve';
+        break;
+      case 'transitionPosition':
+        colorClass = 'position';
+        break;
+      case 'swapPreviewProgram':
+        colorClass = 'swap';
+        break;
+      default:
+        colorClass = '';
+    }
+
+    wrapper.innerHTML = `
+      <label style="display:block; color:#ccc;">
+        Controller ${controller} → ${mapping.action}
+      </label>
+      <input type="range" class="${colorClass}" min="0" max="127" value="0" disabled />
+    `;
+
+    ccControls.appendChild(wrapper);
   }
+}
 
-  // WebSocket connection for live ATEM status updates
-  const ws = new WebSocket(`ws://${location.host}`);
-  ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    if(data.type === 'atemUpdate') {
-      atemStatus = data;
-      renderGrid();
+
+    // Fetch mappings
+    fetch('/api/mappings')
+      .then(res => res.json())
+      .then(data => {
+        noteMappings = data.noteMappings || {};
+        ccMappings = data.controlChangeMappings || {};
+        renderGrid();
+        renderCCSliders();
+      });
+
+    // WebSocket to receive ATEM state updates
+    const socket = new WebSocket(`ws://${location.host}`);
+    socket.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      if (msg.type === 'atemUpdate') {
+        updateAtemVisual(msg.program, msg.preview);
+      }
+    };
+
+    function updateAtemVisual(program, preview) {
+      document.querySelectorAll('.button').forEach(btn => {
+        const note = btn.dataset.note;
+        const mapping = noteMappings[note];
+        btn.classList.remove('program', 'preview');
+
+        if (!mapping) return;
+
+        if (mapping.action === 'program' && mapping.input === program) {
+          btn.classList.add('program');
+        }
+        if (mapping.action === 'preview' && mapping.input === preview) {
+          btn.classList.add('preview');
+        }
+      });
     }
-  };
-
-  loadMappings();
-</script>
-
+  </script>
 </body>
 </html>

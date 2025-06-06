@@ -78,10 +78,24 @@ function handleNoteInput(note, velocity) {
     case 'cut':
       console.log(`Performing CUT transition`);
       atem.cut();
+      break;
     case 'auto':
       console.log(`Performing CUT transition`);
       atem.autoTransition();
-    break;
+      break;
+    case 'mp1':
+      console.log(`🎬 Setting Media Player 1 source to Clip`);
+      atem.setMediaPlayerSource(0, {
+        sourceType: 2, // 2 = clip
+      });
+      break;
+
+    case 'mp2':
+      console.log(`🎬 Setting Media Player 2 source to Clip`);
+      atem.setMediaPlayerSource(1, {
+        sourceType: 2, // 2 = clip
+      });
+      break;
 
     default:
       console.log(`Unknown action type: ${mapping.action} for MIDI note ${note}`);
@@ -101,7 +115,7 @@ function handleCCInput(controller, value) {
   switch (mapping.action) {
     case 'audioGain':
       const gain = (value / 127) * 6 - 60; // -60dB to +6dB
-      atem.setAudioMixerInputGain(mapping.channel, gain);
+      atem.setClassicAudioMixerInputProps(mapping.channel, gain);
       break;
 
     case 'transitionRate':
