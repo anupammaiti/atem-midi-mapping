@@ -1,0 +1,40 @@
+{
+  "noteMappings": {
+    "56": { "action": "program", "input": 1 },
+    "57": { "action": "program", "input": 2 },
+    "58": { "action": "program", "input": 3 },
+    "59": { "action": "program", "input": 4 },
+    "60": { "action": "program", "input": 5 },
+    "61": { "action": "program", "input": 6 },
+    "62": { "action": "program", "input": 7 },
+    "63": { "action": "program", "input": 8 },
+    "48": { "action": "program", "input": 9 },
+    "49": { "action": "program", "input": 10 },
+
+    "40": { "action": "preview", "input": 1 },
+    "41": { "action": "preview", "input": 2 },
+    "42": { "action": "preview", "input": 3 },
+    "43": { "action": "preview", "input": 4 },
+    "44": { "action": "preview", "input": 5 },
+    "45": { "action": "preview", "input": 6 },
+    "46": { "action": "preview", "input": 7 },
+    "47": { "action": "preview", "input": 8 },
+    "32": { "action": "preview", "input": 9 },
+    "33": { "action": "preview", "input": 10 },
+
+    "80": { "action": "macro", "macroIndex": 0 },
+    "81": { "action": "macro", "macroIndex": 1 },
+    "82": { "action": "macro", "macroIndex": 2 },
+
+    "0": { "action": "cut"},
+    "1": { "action": "auto"}
+  },
+ "controlChangeMappings": {
+    "10": { "action": "audioGain", "channel": 1 },
+    "20": { "action": "transitionRate" },
+    "21": { "action": "dveX" },
+    "22": { "action": "dveY" },
+    "23": { "action": "transitionPosition" },
+    "48": { "action": "swapPreviewProgram" }
+  }
+}

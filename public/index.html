@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>AKAI APC Mini + ATEM Mapping</title>
+<style>
+  body { background: #111; color: #eee; font-family: Arial, sans-serif; text-align: center; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(10, 80px);
+    gap: 8px;
+    justify-content: center;
+    margin: 20px auto;
+  }
+  button {
+    font-size: 14px;
+    padding: 18px 4px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  button.program { background-color: #d33; }
+  button.preview { background-color: #3a3; }
+  button.macro { background-color: #e68a00; }
+  button.cutauto { background-color: #0066cc; }
+  button.unmapped { background-color: #444; }
+  button.active { box-shadow: 0 0 12px 3px #fff inset; }
+</style>
+</head>
+<body>
+
+<h1>AKAI APC Mini Layout with ATEM Live Status</h1>
+<div class="grid" id="grid"></div>
+
+<script>
+  // Example: Your noteMappings keys (notes) from 0 to 82
+  // We'll build a grid showing notes 0-83 for simplicity
+
+  const NOTE_START = 0;
+  const NOTE_END = 83; // max note from your mapping
+  const NOTES_PER_ROW = 10;
+
+  let mappings = {};
+  let atemStatus = { program: null, preview: null };
+
+  // Fetch mappings from server (adjust URL if needed)
+  async function loadMappings() {
+    const res = await fetch('/mappings');
+    mappings = await res.json();
+    renderGrid();
+  }
+
+  function renderGrid() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    for(let note = NOTE_START; note <= NOTE_END; note++) {
+      const map = mappings.noteMappings?.[note];
+      const btn = document.createElement('button');
+      btn.dataset.note = note;
+      btn.classList.add('unmapped');
+
+      if (map) {
+        switch(map.action) {
+          case 'program':
+            btn.textContent = `P${map.input}`;
+            btn.className = 'program';
+            if (atemStatus.program === map.input) btn.classList.add('active');
+            break;
+          case 'preview':
+            btn.textContent = `Pr${map.input}`;
+            btn.className = 'preview';
+            if (atemStatus.preview === map.input) btn.classList.add('active');
+            break;
+          case 'macro':
+            btn.textContent = `M${map.macroIndex}`;
+            btn.className = 'macro';
+            break;
+          case 'cut':
+            btn.textContent = 'Cut';
+            btn.className = 'cutauto';
+            break;
+          case 'auto':
+            btn.textContent = 'Auto';
+            btn.className = 'cutauto';
+            break;
+          default:
+            btn.textContent = note;
+            btn.className = 'unmapped';
+        }
+      } else {
+        btn.textContent = note;
+      }
+
+      grid.appendChild(btn);
+    }
+  }
+
+  // WebSocket connection for live ATEM status updates
+  const ws = new WebSocket(`ws://${location.host}`);
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if(data.type === 'atemUpdate') {
+      atemStatus = data;
+      renderGrid();
+    }
+  };
+
+  loadMappings();
+</script>
+
+</body>
+</html>
